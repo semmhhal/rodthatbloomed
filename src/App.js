@@ -341,6 +341,23 @@ const styles = `
     transition: gap 0.2s;
   }
   .back-btn:hover { gap: 10px; }
+  .delete-post-btn {
+    background: none;
+    border: 1px solid var(--blush);
+    color: var(--blush);
+    font-family: 'Lora', serif;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px 16px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    transition: background 0.2s, color 0.2s;
+    margin-bottom: 28px;
+  }
+  .delete-post-btn:hover {
+    background: var(--blush);
+    color: white;
+  }
   .full-title {
     font-family: 'Cormorant Garamond', serif;
     font-size: clamp(28px, 4vw, 44px);
@@ -876,6 +893,21 @@ export default function Blog() {
     setShowWrite(false);
   }
 
+  async function deletePost(postId) {
+    const isSample = SAMPLE_POSTS.find(s => s.id === postId);
+    if (isSample) {
+      // For sample posts, just remove from state
+      setPosts(prev => prev.filter(p => p.id !== postId));
+    } else {
+      // For user-created posts, remove from state and storage
+      const remaining = posts.filter(p => p.id !== postId && !SAMPLE_POSTS.find(s => s.id === p.id));
+      setPosts([...SAMPLE_POSTS.filter(s => s.id !== postId), ...remaining]);
+      try { await window.storage.set("rtb-posts", JSON.stringify(remaining)); } catch {}
+    }
+    setActivePost(null);
+    setView("home");
+  }
+
   function tryAdminLogin() {
     if (pwInput === ADMIN_PASSWORD) {
       setIsAdmin(true);
@@ -989,7 +1021,14 @@ export default function Blog() {
 
             {view === "post" && activePost && (
               <article className="post-full">
-                <button className="back-btn" onClick={() => setView("home")}>← Back to entries</button>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <button className="back-btn" onClick={() => setView("home")}>← Back to entries</button>
+                  {isAdmin && (
+                    <button className="delete-post-btn" onClick={() => deletePost(activePost.id)}>
+                      Delete Entry
+                    </button>
+                  )}
+                </div>
                 <div className="post-meta">
                   <span className="post-date">{activePost.date}</span>
                   <span className="post-tag">{activePost.tag}</span>
