@@ -418,6 +418,22 @@ const styles = `
     padding-left: 44px;
     font-style: italic;
   }
+  .comment-delete-btn {
+    background: none;
+    border: none;
+    color: var(--amber);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 2px;
+    opacity: 0.5;
+    transition: opacity 0.2s, color 0.2s;
+    margin-left: 8px;
+  }
+  .comment-delete-btn:hover {
+    opacity: 1;
+    color: var(--blush);
+  }
 
   /* COMMENT FORM */
   .comment-form {
@@ -812,6 +828,15 @@ export default function Blog() {
     }
   }
 
+  async function deleteComment(commentId) {
+    try {
+      await sbFetch(`/comments?id=eq.${commentId}`, { method: "DELETE" });
+      setComments(prev => prev.filter(c => c.id !== commentId));
+    } catch (e) {
+      setCommentError("Couldn't delete reflection — " + (e.message || "please try again."));
+    }
+  }
+
   async function publishPost() {
     if (!newPost.title.trim() || !newPost.body.trim()) return;
     const now = new Date();
@@ -987,6 +1012,11 @@ export default function Blog() {
                         <span className="comment-time">
                           {new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         </span>
+                        {isAdmin && (
+                          <button className="comment-delete-btn" onClick={() => deleteComment(c.id)} title="Delete reflection">
+                            ✕
+                          </button>
+                        )}
                       </div>
                       <p className="comment-text">{c.message}</p>
                     </div>
