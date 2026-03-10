@@ -162,6 +162,11 @@ const styles = `
     margin-bottom: 24px;
     box-shadow: 0 2px 12px rgba(42,26,14,0.05);
   }
+  .sidebar-highlight {
+    border-left: 3px solid var(--amber);
+    background: var(--parchment);
+    transition: border-color 0.3s, background 0.3s;
+  }
   .sidebar-title {
     font-family: 'Cormorant Garamond', serif;
     font-size: 11px;
@@ -623,6 +628,103 @@ const styles = `
   .empty-text { font-style: italic; font-size: 15px; }
 
   /* FOOTER */
+  /* SUBSCRIBE */
+  .subscribe-section {
+    text-align: center;
+    padding: 48px 24px;
+    border-top: 1px solid var(--border);
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .subscribe-ornament {
+    color: var(--amber-light);
+    font-size: 18px;
+    opacity: 0.6;
+    margin-bottom: 16px;
+  }
+  .subscribe-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 300;
+    color: var(--brown-deep);
+    margin-bottom: 8px;
+  }
+  .subscribe-text {
+    font-size: 14px;
+    color: var(--text-soft);
+    font-style: italic;
+    margin-bottom: 20px;
+  }
+  .subscribe-form {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+  .subscribe-input {
+    border: 1px solid var(--border);
+    background: white;
+    padding: 10px 14px;
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    color: var(--text);
+    border-radius: 2px;
+    outline: none;
+    flex: 1;
+    max-width: 280px;
+    transition: border-color 0.2s;
+  }
+  .subscribe-input:focus { border-color: var(--amber-light); }
+  .subscribe-btn {
+    background: var(--amber);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.2s;
+  }
+  .subscribe-btn:hover { background: var(--brown-mid); }
+  .subscribe-count {
+    font-size: 12px;
+    color: var(--amber);
+    letter-spacing: 1px;
+    margin-top: 12px;
+  }
+  .admin-subs { margin-top: 4px; }
+  .subs-list {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    margin-top: 12px;
+    text-align: left;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .subs-empty {
+    padding: 16px;
+    font-size: 13px;
+    color: var(--text-soft);
+    font-style: italic;
+  }
+  .subs-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px dotted var(--border);
+    font-size: 13px;
+  }
+  .subs-item:last-child { border-bottom: none; }
+  .subs-email { color: var(--text); }
+  .subs-date {
+    color: var(--amber);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
   .site-footer {
     background: var(--brown-deep);
     padding: 52px 24px 36px;
@@ -825,6 +927,12 @@ export default function Blog() {
   const [activeNav, setActiveNav] = useState("stories");
   const [isAdmin, setIsAdmin] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
+  const [subEmail, setSubEmail] = useState("");
+  const [subSuccess, setSubSuccess] = useState(false);
+  const [subError, setSubError] = useState("");
+  const [subCount, setSubCount] = useState(0);
+  const [subscribers, setSubscribers] = useState([]);
+  const [showSubs, setShowSubs] = useState(false);
   const [showPwModal, setShowPwModal] = useState(false);
   const [pwInput, setPwInput] = useState("");
   const [pwError, setPwError] = useState(false);
@@ -850,6 +958,42 @@ export default function Blog() {
       loaded.current = true;
     })();
   }, []);
+
+  // Fetch subscribers
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await sbFetch("/subscribers?order=created_at.desc");
+        if (Array.isArray(data)) {
+          setSubscribers(data);
+          setSubCount(data.length);
+        }
+      } catch {}
+    })();
+  }, []);
+
+  async function subscribe() {
+    if (!subEmail.trim()) return;
+    setSubError("");
+    try {
+      const data = await sbFetch("/subscribers", {
+        method: "POST",
+        body: JSON.stringify({ email: subEmail.trim() }),
+      });
+      const newSub = Array.isArray(data) ? data[0] : data;
+      setSubscribers(prev => [newSub, ...prev]);
+      setSubEmail("");
+      setSubSuccess(true);
+      setSubCount(prev => prev + 1);
+      setTimeout(() => setSubSuccess(false), 3000);
+    } catch (e) {
+      if (e.message && e.message.includes("duplicate")) {
+        setSubError("You're already subscribed!");
+      } else {
+        setSubError("Couldn't subscribe — " + (e.message || "please try again."));
+      }
+    }
+  }
 
   // Fetch comments from Supabase when a post is opened
   async function fetchComments(postId) {
@@ -1032,7 +1176,7 @@ export default function Blog() {
 
           {/* SIDEBAR */}
           <aside className="sidebar">
-            <div className="sidebar-section">
+            <div className={`sidebar-section${activeNav==="about"?" sidebar-highlight":""}`}>
               <div className="sidebar-title">About This Space</div>
               <p className="about-text">
                 Hi, my name is Semhal. This is my open door — a place where I pour out whatever is sitting heavy on my heart and share what God has been gently teaching me through it all. About faith, childhood, womanhood, relationships, the wrestling, the healing — and the slow bloom that comes from being held even when you can't feel it. No performance, no polish. Just honesty, and the belief that someone out there needed to hear it too.
@@ -1271,6 +1415,47 @@ export default function Blog() {
         </div>
       )}
       {isAdmin && <div style={{height:36}} />}
+
+      {/* SUBSCRIBE */}
+      <div className="subscribe-section">
+        <div className="subscribe-ornament">✦</div>
+        <h3 className="subscribe-title">Stay With Me</h3>
+        <p className="subscribe-text">Get notified when a new entry is published. No spam, just stories.</p>
+        <div className="subscribe-form">
+          <input className="subscribe-input" type="email" placeholder="Your email address"
+            value={subEmail} onChange={e => setSubEmail(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && subscribe()} />
+          <button className="subscribe-btn" onClick={subscribe}>Subscribe</button>
+        </div>
+        {subSuccess && (
+          <p style={{color:"var(--sage)",fontSize:"12px",fontStyle:"italic",marginTop:"10px"}}>
+            ✦ Thank you for following along.
+          </p>
+        )}
+        {subError && (
+          <p style={{color:"var(--blush)",fontSize:"12px",fontStyle:"italic",marginTop:"10px"}}>{subError}</p>
+        )}
+        {isAdmin && (
+          <div className="admin-subs">
+            <p className="subscribe-count" onClick={() => setShowSubs(!showSubs)} style={{cursor:"pointer"}}>
+              {subCount} {subCount === 1 ? "subscriber" : "subscribers"} {showSubs ? "▲" : "▼"}
+            </p>
+            {showSubs && (
+              <div className="subs-list">
+                {subscribers.length === 0 && <p className="subs-empty">No subscribers yet.</p>}
+                {subscribers.map(s => (
+                  <div key={s.id} className="subs-item">
+                    <span className="subs-email">{s.email}</span>
+                    <span className="subs-date">
+                      {new Date(s.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* FOOTER */}
       <footer className="site-footer">
