@@ -846,63 +846,6 @@ const styles = `
   }
 `;
 
-const SAMPLE_POSTS = [
-  {
-    id: 1,
-    title: "When the Rod Felt Dry",
-    date: "March 2, 2025",
-    monthKey: "2025-03",
-    tag: "Faith",
-    excerpt: "There are seasons when prayer feels like speaking into a hollow room. No echo. No answer. Just your own voice bouncing back. I want to talk about those seasons honestly — because I lived in one for three years and nobody told me it was okay.",
-    body: `There are seasons when prayer feels like speaking into a hollow room. No echo. No answer. Just your own voice bouncing back. I want to talk about those seasons honestly — because I lived in one for three years and nobody told me it was okay.
-
-I grew up in a church where doubt was treated like a disease. You caught it, and you kept it quiet, and you hoped nobody noticed the dark circles under your spiritual eyes. So when the silence came for me — that thick, heavy silence where God seemed absent — I did what I was trained to do. I smiled through it.
-
-But something in me knew that a rod doesn't bloom by staying in the ground forever. Aaron's staff was dead wood. Completely dry. Left overnight with no water, no sunlight, no human effort. And yet by morning — buds, blossoms, almonds.
-
-That is the God I am learning to trust. Not the one who blooms you when you perform well, but the one who blooms you in the dark.
-
-If you are in that hollow-room season right now, I want you to know: your dryness is not your failure. The silence is not His absence. Sometimes the most miraculous thing is happening precisely when it feels like nothing is happening at all.`,
-  },
-  {
-    id: 2,
-    title: "Letters to the Child I Was",
-    date: "February 14, 2025",
-    monthKey: "2025-02",
-    tag: "Childhood",
-    excerpt: "I found a photograph of myself at seven years old. Bowl cut, gap-toothed grin, holding a trophy for a spelling bee I barely remember. I stared at that little face for a long time and thought: what would I tell him? What would I need to say?",
-    body: `I found a photograph of myself at seven years old. Bowl cut, gap-toothed grin, holding a trophy for a spelling bee I barely remember. I stared at that little face for a long time and thought: what would I tell him? What would I need to say?
-
-The honest answer is: everything.
-
-I would tell him that the loudness in the house isn't his fault. That the way he learned to become invisible — to shrink himself into the walls when voices rose — was a survival skill, and survival skills are gifts even when they leave scars.
-
-I would tell him that God sees him. Not the performance, not the spelling bee trophy, not the good-boy mask he learned to wear so well. The real him. The one who cried under the covers and didn't know why.
-
-Healing from childhood isn't a straight line. I've come to believe it's more like that rod — a slow, quiet, often invisible process where something alive is working through something that looked dead. You might not see the buds for a long time. But they are coming.
-
-I'm writing these letters because maybe someone out there is staring at an old photograph of themselves and feeling that same ache. You are not alone. And the child you were deserved more than they got. That grief is real. And so is the hope.`,
-  },
-  {
-    id: 3,
-    title: "On Struggling With Church",
-    date: "January 8, 2025",
-    monthKey: "2025-01",
-    tag: "Struggle",
-    excerpt: "I still go. Every Sunday, I still go. But I want to be honest about how complicated that has become — and why I think the complication might actually be a form of faithfulness.",
-    body: `I still go. Every Sunday, I still go. But I want to be honest about how complicated that has become — and why I think the complication might actually be a form of faithfulness.
-
-There was a time when church was simple. You went, you sang, you felt the warmth, you left. The belonging was uncomplicated. Somewhere in my late twenties, something shifted. I started asking questions that the room didn't seem to have space for. I started noticing gaps between what was preached and what was practiced. I started feeling — slowly, then all at once — like a stranger in a place I used to call home.
-
-I didn't leave. But part of me grieved the version of faith that didn't require so much navigation.
-
-Here's what I've come to: the struggle with the Church is not the same as the struggle with God. Sometimes I think we confuse the two, and the confusion costs us everything. People walk away from both when perhaps they only needed to walk away from one — or walk toward a different expression of the other.
-
-My faith has gotten smaller in some ways. Less triumphant. More quiet. But it has also gotten more honest. And I have come to believe that God prefers my honest struggle to my performed certainty.
-
-That feels like something worth writing down.`,
-  },
-];
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const TAGS = ["Faith", "Childhood", "Struggle", "God", "Prayer", "Healing", "Community", "Reflection"];
@@ -913,7 +856,7 @@ function formatDate(iso) {
 }
 
 export default function Blog() {
-  const [posts, setPosts] = useState(SAMPLE_POSTS);
+  const [posts, setPosts] = useState([]);
   const [view, setView] = useState("home");
   const [activePost, setActivePost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -950,7 +893,7 @@ export default function Blog() {
             date: formatDate(p.created_at),
             monthKey: `${new Date(p.created_at).getFullYear()}-${String(new Date(p.created_at).getMonth()+1).padStart(2,"0")}`,
           }));
-          setPosts([...SAMPLE_POSTS, ...formatted]);
+          setPosts(formatted);
         }
       } catch (e) {
         console.error("Could not load posts:", e);
@@ -1086,17 +1029,12 @@ export default function Blog() {
   }
 
   async function deletePost(postId) {
-    const isSample = SAMPLE_POSTS.find(s => s.id === postId);
-    if (isSample) {
-      setPosts(prev => prev.filter(p => p.id !== postId));
-    } else {
-      try {
-        await sbFetch(`/posts?id=eq.${postId}`, { method: "DELETE" });
-      } catch (e) {
-        console.error("Could not delete post:", e);
-      }
-      setPosts(prev => prev.filter(p => p.id !== postId));
+    try {
+      await sbFetch(`/posts?id=eq.${postId}`, { method: "DELETE" });
+    } catch (e) {
+      console.error("Could not delete post:", e);
     }
+    setPosts(prev => prev.filter(p => p.id !== postId));
     setActivePost(null);
     setView("home");
   }
@@ -1115,17 +1053,14 @@ export default function Blog() {
       excerpt: newPost.body.slice(0, 180) + (newPost.body.length > 180 ? "…" : ""),
       body: newPost.body,
     };
-    const isSample = SAMPLE_POSTS.find(s => s.id === editingPost.id);
-    if (!isSample) {
-      try {
-        await sbFetch(`/posts?id=eq.${editingPost.id}`, {
-          method: "PATCH",
-          body: JSON.stringify(updated),
-        });
-      } catch (e) {
-        console.error("Could not update post:", e);
-        return;
-      }
+    try {
+      await sbFetch(`/posts?id=eq.${editingPost.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(updated),
+      });
+    } catch (e) {
+      console.error("Could not update post:", e);
+      return;
     }
     setPosts(prev => prev.map(p => p.id === editingPost.id ? { ...p, ...updated } : p));
     setActivePost(prev => prev && prev.id === editingPost.id ? { ...prev, ...updated } : prev);
