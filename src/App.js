@@ -341,6 +341,23 @@ const styles = `
     transition: gap 0.2s;
   }
   .back-btn:hover { gap: 10px; }
+  .edit-post-btn {
+    background: none;
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    font-family: 'Lora', serif;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px 16px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    transition: background 0.2s, color 0.2s;
+    margin-bottom: 28px;
+  }
+  .edit-post-btn:hover {
+    background: var(--amber);
+    color: white;
+  }
   .delete-post-btn {
     background: none;
     border: 1px solid var(--blush);
@@ -787,6 +804,7 @@ export default function Blog() {
   const [newPost, setNewPost] = useState({ title: "", body: "", tag: "Faith" });
   const [activeNav, setActiveNav] = useState("stories");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [editingPost, setEditingPost] = useState(null);
   const [showPwModal, setShowPwModal] = useState(false);
   const [pwInput, setPwInput] = useState("");
   const [pwError, setPwError] = useState(false);
@@ -919,6 +937,39 @@ export default function Blog() {
     setView("home");
   }
 
+  function startEditPost(post) {
+    setEditingPost(post);
+    setNewPost({ title: post.title, body: post.body, tag: post.tag });
+    setShowWrite(true);
+  }
+
+  async function saveEditPost() {
+    if (!newPost.title.trim() || !newPost.body.trim()) return;
+    const updated = {
+      title: newPost.title.trim(),
+      tag: newPost.tag,
+      excerpt: newPost.body.slice(0, 180) + (newPost.body.length > 180 ? "…" : ""),
+      body: newPost.body,
+    };
+    const isSample = SAMPLE_POSTS.find(s => s.id === editingPost.id);
+    if (!isSample) {
+      try {
+        await sbFetch(`/posts?id=eq.${editingPost.id}`, {
+          method: "PATCH",
+          body: JSON.stringify(updated),
+        });
+      } catch (e) {
+        console.error("Could not update post:", e);
+        return;
+      }
+    }
+    setPosts(prev => prev.map(p => p.id === editingPost.id ? { ...p, ...updated } : p));
+    setActivePost(prev => prev && prev.id === editingPost.id ? { ...prev, ...updated } : prev);
+    setEditingPost(null);
+    setNewPost({ title: "", body: "", tag: "Faith" });
+    setShowWrite(false);
+  }
+
   function tryAdminLogin() {
     if (pwInput === ADMIN_PASSWORD) {
       setIsAdmin(true);
@@ -1035,9 +1086,14 @@ export default function Blog() {
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <button className="back-btn" onClick={() => setView("home")}>← Back to entries</button>
                   {isAdmin && (
-                    <button className="delete-post-btn" onClick={() => deletePost(activePost.id)}>
-                      Delete Entry
-                    </button>
+                    <div style={{display:"flex",gap:"8px"}}>
+                      <button className="edit-post-btn" onClick={() => startEditPost(activePost)}>
+                        Edit Entry
+                      </button>
+                      <button className="delete-post-btn" onClick={() => deletePost(activePost.id)}>
+                        Delete Entry
+                      </button>
+                    </div>
                   )}
                 </div>
                 <div className="post-meta">
@@ -1128,12 +1184,12 @@ export default function Blog() {
           </main>
         </div>
 
-        {/* WRITE MODAL — admin only */}
+        {/* WRITE/EDIT MODAL — admin only */}
         {showWrite && isAdmin && (
-          <div className="modal-overlay" onClick={e => { if(e.target===e.currentTarget) setShowWrite(false); }}>
+          <div className="modal-overlay" onClick={e => { if(e.target===e.currentTarget) { setShowWrite(false); setEditingPost(null); setNewPost({title:"",body:"",tag:"Faith"}); }}}>
             <div className="modal">
-              <button className="modal-close" onClick={() => setShowWrite(false)}>✕</button>
-              <h2 className="modal-title">New Entry</h2>
+              <button className="modal-close" onClick={() => { setShowWrite(false); setEditingPost(null); setNewPost({title:"",body:"",tag:"Faith"}); }}>✕</button>
+              <h2 className="modal-title">{editingPost ? "Edit Entry" : "New Entry"}</h2>
 
               <div className="form-field" style={{marginBottom:"16px"}}>
                 <label className="form-label">Title</label>
@@ -1163,8 +1219,10 @@ export default function Blog() {
               </div>
 
               <div style={{display:"flex",gap:"12px"}}>
-                <button className="submit-btn" onClick={publishPost}>Publish Entry →</button>
-                <button onClick={() => setShowWrite(false)}
+                <button className="submit-btn" onClick={editingPost ? saveEditPost : publishPost}>
+                  {editingPost ? "Save Changes →" : "Publish Entry →"}
+                </button>
+                <button onClick={() => { setShowWrite(false); setEditingPost(null); setNewPost({title:"",body:"",tag:"Faith"}); }}
                   style={{background:"none",border:"1px solid var(--border)",padding:"12px 20px",cursor:"pointer",fontFamily:"Lora,serif",fontSize:"13px",color:"var(--text-soft)",borderRadius:"2px"}}>
                   Cancel
                 </button>
