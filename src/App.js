@@ -486,6 +486,26 @@ const styles = `
     color: var(--blush);
   }
 
+  /* CONTACT */
+  .contact-section { max-width: 640px; }
+  .contact-text {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-soft);
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+  .contact-email {
+    font-size: 16px;
+    margin-top: 28px;
+  }
+  .contact-email a {
+    color: var(--amber);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .contact-email a:hover { color: var(--brown-mid); }
+
   /* COMMENT FORM */
   .comment-form {
     background: var(--cream);
@@ -996,7 +1016,7 @@ export default function Blog() {
             <h1 className="site-title">rod that <span>bloomed</span></h1>
             <p className="site-tagline">a journal of faith, childhood, struggle, and the God who meets us in the dark</p>
             <nav className="header-nav">
-              {["stories","about"].map(n => (
+              {["stories","about","contact"].map(n => (
                 <button key={n} className={`nav-btn${activeNav===n?" active":""}`}
                   onClick={() => { setActiveNav(n); setView("home"); setFilterMonth(null); setActivePost(null); }}>
                   {n}
@@ -1015,9 +1035,7 @@ export default function Blog() {
             <div className="sidebar-section">
               <div className="sidebar-title">About This Space</div>
               <p className="about-text">
-                A place to write honestly about faith, the wounds of childhood,
-                the wrestling with God, and the slow bloom that comes
-                from being held even when you can't feel it.
+                Hi, my name is Semhal. This is my open door — a place where I pour out whatever is sitting heavy on my heart and share what God has been gently teaching me through it all. About faith, childhood, womanhood, relationships, the wrestling, the healing — and the slow bloom that comes from being held even when you can't feel it. No performance, no polish. Just honesty, and the belief that someone out there needed to hear it too.
               </p>
             </div>
 
@@ -1056,7 +1074,19 @@ export default function Blog() {
 
           {/* CONTENT */}
           <main className="posts-area">
-            {view === "home" && (
+            {view === "home" && activeNav === "contact" && (
+              <div className="contact-section">
+                <div className="section-heading">Contact Me</div>
+                <p className="contact-text">You don't have to have it all figured out to reach out.</p>
+                <p className="contact-text">
+                  If something here stirred something in you — a memory, a question, a wound you haven't named yet — I'd love to hear from you. This space exists because none of us are meant to carry our stories alone.
+                </p>
+                <p className="contact-text">Reach out. I read every message personally.</p>
+                <p className="contact-email">📩 <a href="mailto:rodthatbloomed@gmail.com">rodthatbloomed@gmail.com</a></p>
+              </div>
+            )}
+
+            {view === "home" && activeNav !== "contact" && (
               <>
                 <div className="section-heading">
                   {filterMonth ? `${MONTHS[parseInt(filterMonth.split("-")[1],10)-1]} ${filterMonth.split("-")[0]}` : "Recent Entries"}
