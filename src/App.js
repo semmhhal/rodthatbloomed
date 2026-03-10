@@ -3,6 +3,17 @@ import { useState, useEffect, useRef } from "react";
 const SUPABASE_URL = "https://petexirslmjvjefzfcuv.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBldGV4aXJzbG1qdmplZnpmY3V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMTAwMjMsImV4cCI6MjA4ODY4NjAyM30.qb3-i72WQQW7rgKsVICv5Oe1sPzOPNp5HmC7U4hxKBM";
 
+function renderLinkedText(text) {
+  const parts = text.split(/(\[.*?\]\(.*?\))/g);
+  return parts.map((part, i) => {
+    const match = part.match(/^\[(.*?)\]\((.*?)\)$/);
+    if (match) {
+      return <a key={i} href={match[2]} target="_blank" rel="noopener noreferrer">{match[1]}</a>;
+    }
+    return part;
+  });
+}
+
 async function sbFetch(path, options = {}) {
   const headers = {
     "apikey": SUPABASE_KEY,
@@ -345,6 +356,13 @@ const styles = `
     margin-top: 28px;
   }
   .full-body p { margin-bottom: 20px; }
+  .full-body a {
+    color: var(--amber);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.2s;
+  }
+  .full-body a:hover { color: var(--brown-mid); }
   .divider {
     text-align: center;
     color: var(--amber-light);
@@ -980,7 +998,7 @@ export default function Blog() {
                 <div className="divider">✦ ✦ ✦</div>
                 <div className="full-body">
                   {activePost.body.split("\n\n").map((para, i) => (
-                    <p key={i}>{para}</p>
+                    <p key={i}>{renderLinkedText(para)}</p>
                   ))}
                 </div>
                 <div className="divider" style={{marginBottom:0}}>✦</div>
