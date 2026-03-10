@@ -375,8 +375,7 @@ const styles = `
   .full-body p { margin-bottom: 20px; }
   .full-body a {
     color: var(--amber);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    text-decoration: none;
     transition: color 0.2s;
   }
   .full-body a:hover { color: var(--brown-mid); }
@@ -794,16 +793,22 @@ export default function Blog() {
   const ADMIN_PASSWORD = "rodthatbloomed2025";
   const loaded = useRef(false);
 
-  // Load saved posts from storage
+  // Load saved posts from Supabase
   useEffect(() => {
     (async () => {
       try {
-        const pr = await window.storage.get("rtb-posts");
-        if (pr?.value) {
-          const saved = JSON.parse(pr.value);
-          if (saved.length) setPosts([...SAMPLE_POSTS, ...saved]);
+        const saved = await sbFetch("/posts?order=created_at.asc");
+        if (saved.length) {
+          const formatted = saved.map(p => ({
+            ...p,
+            date: formatDate(p.created_at),
+            monthKey: `${new Date(p.created_at).getFullYear()}-${String(new Date(p.created_at).getMonth()+1).padStart(2,"0")}`,
+          }));
+          setPosts([...SAMPLE_POSTS, ...formatted]);
         }
-      } catch {}
+      } catch (e) {
+        console.error("Could not load posts:", e);
+      }
       loaded.current = true;
     })();
   }, []);
@@ -874,35 +879,41 @@ export default function Blog() {
 
   async function publishPost() {
     if (!newPost.title.trim() || !newPost.body.trim()) return;
-    const now = new Date();
-    const monthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
-    const p = {
-      id: Date.now(),
-      title: newPost.title,
-      date: formatDate(now.toISOString()),
-      monthKey,
-      tag: newPost.tag,
-      excerpt: newPost.body.slice(0, 180) + (newPost.body.length > 180 ? "…" : ""),
-      body: newPost.body,
-    };
-    const existing = posts.filter(x => !SAMPLE_POSTS.find(s => s.id === x.id));
-    const updatedSaved = [...existing, p];
-    setPosts([...SAMPLE_POSTS, ...updatedSaved]);
-    try { await window.storage.set("rtb-posts", JSON.stringify(updatedSaved)); } catch {}
-    setNewPost({ title: "", body: "", tag: "Faith" });
-    setShowWrite(false);
+    try {
+      const data = await sbFetch("/posts", {
+        method: "POST",
+        body: JSON.stringify({
+          title: newPost.title.trim(),
+          tag: newPost.tag,
+          excerpt: newPost.body.slice(0, 180) + (newPost.body.length > 180 ? "…" : ""),
+          body: newPost.body,
+        }),
+      });
+      const saved = Array.isArray(data) ? data[0] : data;
+      const p = {
+        ...saved,
+        date: formatDate(saved.created_at),
+        monthKey: `${new Date(saved.created_at).getFullYear()}-${String(new Date(saved.created_at).getMonth()+1).padStart(2,"0")}`,
+      };
+      setPosts(prev => [...prev, p]);
+      setNewPost({ title: "", body: "", tag: "Faith" });
+      setShowWrite(false);
+    } catch (e) {
+      console.error("Could not publish post:", e);
+    }
   }
 
   async function deletePost(postId) {
     const isSample = SAMPLE_POSTS.find(s => s.id === postId);
     if (isSample) {
-      // For sample posts, just remove from state
       setPosts(prev => prev.filter(p => p.id !== postId));
     } else {
-      // For user-created posts, remove from state and storage
-      const remaining = posts.filter(p => p.id !== postId && !SAMPLE_POSTS.find(s => s.id === p.id));
-      setPosts([...SAMPLE_POSTS.filter(s => s.id !== postId), ...remaining]);
-      try { await window.storage.set("rtb-posts", JSON.stringify(remaining)); } catch {}
+      try {
+        await sbFetch(`/posts?id=eq.${postId}`, { method: "DELETE" });
+      } catch (e) {
+        console.error("Could not delete post:", e);
+      }
+      setPosts(prev => prev.filter(p => p.id !== postId));
     }
     setActivePost(null);
     setView("home");
