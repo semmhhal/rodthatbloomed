@@ -1310,7 +1310,7 @@ export default function Blog() {
             <nav className="header-nav">
               {["stories","about","contact"].map(n => (
                 <button key={n} className={`nav-btn${activeNav===n?" active":""}`}
-                  onClick={() => { setActiveNav(n); setView("home"); setFilterMonth(null); setActivePost(null); }}>
+                  onClick={() => { setActiveNav(n); setView("home"); setFilterMonth(null); setActivePost(null); window.scrollTo({top:0,behavior:"smooth"}); }}>
                   {n}
                 </button>
               ))}
@@ -1348,7 +1348,7 @@ export default function Blog() {
                     const key = `${year}-${m}`;
                     return (
                       <div key={m} className="archive-month"
-                        onClick={() => { setFilterMonth(filterMonth===key?null:key); setView("home"); setActivePost(null); }}>
+                        onClick={() => { setFilterMonth(filterMonth===key?null:key); setView("home"); setActivePost(null); window.scrollTo({top:0,behavior:"smooth"}); }}>
                         <span style={filterMonth===key?{color:"var(--amber)"}:{}}>{label} {year}</span>
                         <span className="count">{archive[year][m]}</span>
                       </div>
@@ -1369,7 +1369,7 @@ export default function Blog() {
               <div className="categories-list">
                 {TAGS.map(t => (
                   <div key={t} className="category-item"
-                    onClick={() => { setFilterTag(filterTag === t ? null : t); setView("home"); setActivePost(null); setActiveNav("stories"); }}>
+                    onClick={() => { setFilterTag(filterTag === t ? null : t); setView("home"); setActivePost(null); setActiveNav("stories"); window.scrollTo({top:0,behavior:"smooth"}); }}>
                     <span style={filterTag === t ? {color:"var(--amber)"} : {}}>{t}</span>
                   </div>
                 ))}
