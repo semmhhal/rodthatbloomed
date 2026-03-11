@@ -974,7 +974,7 @@ export default function Blog() {
     setCommentsLoading(true);
     setComments([]);
     try {
-      const data = await sbFetch(`/comments?post_id=eq.${postId}&order=created_at.asc`);
+      const data = await sbFetch(`/comments?select=id,post_id,parent_id,name,message,created_at&post_id=eq.${postId}&order=created_at.asc`);
       setComments(data);
     } catch (e) {
       console.error("Could not load comments:", e);
@@ -1004,14 +1004,15 @@ export default function Blog() {
   }
 
   async function submitComment(postId) {
-    if (!newComment.name.trim() || !newComment.message.trim()) return;
+    const commentName = isAdmin ? "Semhal" : newComment.name.trim();
+    if (!commentName || !newComment.message.trim()) return;
     setCommentError("");
     try {
       const data = await sbFetch("/comments", {
         method: "POST",
         body: JSON.stringify({
           post_id: postId,
-          name: newComment.name.trim(),
+          name: commentName,
           message: newComment.message.trim(),
         }),
       });
@@ -1034,14 +1035,15 @@ export default function Blog() {
   }
 
   async function submitReply(postId, parentId) {
-    if (!replyText.trim() || !replyName.trim()) return;
+    const rName = isAdmin ? "Semhal" : replyName.trim();
+    if (!replyText.trim() || !rName) return;
     try {
       const data = await sbFetch("/comments", {
         method: "POST",
         body: JSON.stringify({
           post_id: postId,
           parent_id: parentId,
-          name: replyName.trim(),
+          name: rName,
           message: replyText.trim(),
         }),
       });
@@ -1320,8 +1322,8 @@ export default function Blog() {
                       </button>
                       {replyingTo === c.id && (
                         <div className="reply-form">
-                          <input className="form-input" style={{marginBottom:"8px",width:"100%",boxSizing:"border-box"}} placeholder="Your name"
-                            value={replyName} onChange={e => setReplyName(e.target.value)} />
+                          {!isAdmin && <input className="form-input" style={{marginBottom:"8px",width:"100%",boxSizing:"border-box"}} placeholder="Your name"
+                            value={replyName} onChange={e => setReplyName(e.target.value)} />}
                           <textarea className="form-textarea" style={{minHeight:"60px",width:"100%",boxSizing:"border-box"}} placeholder="Write a reply..."
                             value={replyText} onChange={e => setReplyText(e.target.value)} />
                           <div style={{display:"flex",gap:"8px",marginTop:"8px"}}>
@@ -1358,18 +1360,20 @@ export default function Blog() {
 
                   <div className="comment-form">
                     <p className="form-title">Leave a reflection or share your own story...</p>
-                    <div className="form-row">
-                      <div className="form-field">
-                        <label className="form-label">Your Name</label>
-                        <input className="form-input" placeholder="e.g. Grace"
-                          value={newComment.name}
-                          onChange={e => setNewComment(p => ({...p, name: e.target.value}))} />
+                    {!isAdmin && (
+                      <div className="form-row">
+                        <div className="form-field">
+                          <label className="form-label">Your Name</label>
+                          <input className="form-input" placeholder="e.g. Grace"
+                            value={newComment.name}
+                            onChange={e => setNewComment(p => ({...p, name: e.target.value}))} />
+                        </div>
+                        <div className="form-field">
+                          <label className="form-label">Also Known As (optional)</label>
+                          <input className="form-input" placeholder="a sojourner, a friend..." />
+                        </div>
                       </div>
-                      <div className="form-field">
-                        <label className="form-label">Also Known As (optional)</label>
-                        <input className="form-input" placeholder="a sojourner, a friend..." />
-                      </div>
-                    </div>
+                    )}
                     <div className="form-field" style={{marginBottom:0}}>
                       <label className="form-label">Your Reflection</label>
                       <textarea className="form-textarea" placeholder="This resonated with me because..."
