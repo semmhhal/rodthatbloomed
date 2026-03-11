@@ -1085,6 +1085,136 @@ export default function Blog() {
     return () => window.removeEventListener("hashchange", handleHash);
   }, [posts]);
 
+  function generateShareImage(post) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1350;
+    const ctx = canvas.getContext("2d");
+
+    // Background
+    ctx.fillStyle = "#F5F0E8";
+    ctx.fillRect(0, 0, 1080, 1350);
+
+    // Top border accent
+    ctx.fillStyle = "#8B6914";
+    ctx.fillRect(0, 0, 1080, 4);
+
+    // Top ornament
+    ctx.fillStyle = "#C4A45A";
+    ctx.font = "24px Georgia, serif";
+    ctx.textAlign = "center";
+    ctx.fillText("✦  ✦  ✦", 540, 120);
+
+    // Tag
+    ctx.fillStyle = "#8B6914";
+    ctx.font = "italic 20px Georgia, serif";
+    ctx.fillText(post.tag || "", 540, 200);
+
+    // Title - word wrap
+    ctx.fillStyle = "#2A1A0E";
+    ctx.font = "300 52px Georgia, serif";
+    const titleWords = post.title.split(" ");
+    let titleLines = [];
+    let currentLine = "";
+    titleWords.forEach(word => {
+      const test = currentLine ? currentLine + " " + word : word;
+      if (ctx.measureText(test).width > 880) {
+        titleLines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = test;
+      }
+    });
+    if (currentLine) titleLines.push(currentLine);
+    let titleY = 280;
+    titleLines.forEach(line => {
+      ctx.fillText(line, 540, titleY);
+      titleY += 68;
+    });
+
+    // Divider
+    ctx.fillStyle = "#C4A45A";
+    ctx.font = "20px Georgia, serif";
+    ctx.fillText("✦", 540, titleY + 30);
+
+    // Excerpt - word wrap
+    ctx.fillStyle = "#5C4A3A";
+    ctx.font = "italic 26px Georgia, serif";
+    const excerptWords = post.excerpt.split(" ");
+    let excerptLines = [];
+    currentLine = "";
+    excerptWords.forEach(word => {
+      const test = currentLine ? currentLine + " " + word : word;
+      if (ctx.measureText(test).width > 840) {
+        excerptLines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = test;
+      }
+    });
+    if (currentLine) excerptLines.push(currentLine);
+    let excerptY = titleY + 90;
+    excerptLines.slice(0, 6).forEach(line => {
+      ctx.fillText(line, 540, excerptY);
+      excerptY += 40;
+    });
+    if (excerptLines.length > 6) {
+      ctx.fillText("...", 540, excerptY);
+      excerptY += 40;
+    }
+
+    // "Continue reading" link text
+    ctx.fillStyle = "#8B6914";
+    ctx.font = "18px Georgia, serif";
+    ctx.fillText("Continue Reading →", 540, excerptY + 40);
+
+    // Bottom section
+    ctx.fillStyle = "#C4A45A";
+    ctx.font = "20px Georgia, serif";
+    ctx.fillText("✦", 540, 1160);
+
+    // Blog name
+    ctx.fillStyle = "#2A1A0E";
+    ctx.font = "300 36px Georgia, serif";
+    ctx.fillText("rod that bloomed", 540, 1220);
+
+    // URL
+    ctx.fillStyle = "#8B6914";
+    ctx.font = "16px Georgia, serif";
+    ctx.fillText("rodthatbloomed.com", 540, 1260);
+
+    // Bottom border accent
+    ctx.fillStyle = "#8B6914";
+    ctx.fillRect(0, 1346, 1080, 4);
+
+    return canvas;
+  }
+
+  function shareAsImage(post) {
+    const canvas = generateShareImage(post);
+    const url = getShareUrl(post);
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], `${post.title.replace(/[^a-z0-9]/gi, "-").toLowerCase()}.png`, { type: "image/png" });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: post.title,
+            text: `${post.title}\n\n${post.excerpt}\n\nRead more: ${url}`,
+            url,
+          });
+        } catch {}
+      } else {
+        const link = document.createElement("a");
+        link.download = file.name;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+    }, "image/png");
+    setShowShareMenu(false);
+  }
+
   function getShareUrl(post) {
     return `${window.location.origin}${window.location.pathname}#post/${post.id}`;
   }
@@ -1390,6 +1520,8 @@ export default function Blog() {
                         <button className="share-menu-item" onClick={() => shareVia("gmail", activePost)}>Gmail</button>
                         <button className="share-menu-item" onClick={() => shareVia("twitter", activePost)}>Twitter / X</button>
                         <button className="share-menu-item" onClick={() => shareVia("copy", activePost)}>Copy Link</button>
+                        <div style={{borderTop:"1px dotted var(--border)",margin:"4px 0"}} />
+                        <button className="share-menu-item" onClick={() => shareAsImage(activePost)}>Share as Image</button>
                       </div>
                     )}
                   </div>
