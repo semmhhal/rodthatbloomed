@@ -474,6 +474,32 @@ const styles = `
     padding-left: 44px;
     font-style: italic;
   }
+  .reply-btn {
+    background: none;
+    border: none;
+    color: var(--amber);
+    font-family: 'Lora', serif;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 44px;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .reply-btn:hover { opacity: 1; }
+  .reply-form {
+    margin-left: 44px;
+    margin-top: 12px;
+  }
+  .comment-reply {
+    margin-left: 44px;
+    padding: 14px 0;
+    border-left: 2px solid var(--border);
+    padding-left: 16px;
+    margin-top: 8px;
+  }
   .comment-delete-btn {
     background: none;
     border: none;
@@ -870,6 +896,8 @@ export default function Blog() {
   const [activeNav, setActiveNav] = useState("stories");
   const [isAdmin, setIsAdmin] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState("");
   const [subEmail, setSubEmail] = useState("");
   const [subSuccess, setSubSuccess] = useState(false);
   const [subError, setSubError] = useState("");
@@ -999,6 +1027,26 @@ export default function Blog() {
       setComments(prev => prev.filter(c => c.id !== commentId));
     } catch (e) {
       setCommentError("Couldn't delete reflection — " + (e.message || "please try again."));
+    }
+  }
+
+  async function submitReply(postId, parentId) {
+    if (!replyText.trim()) return;
+    try {
+      const data = await sbFetch("/comments", {
+        method: "POST",
+        body: JSON.stringify({
+          post_id: postId,
+          parent_id: parentId,
+          name: "Semhal",
+          message: replyText.trim(),
+        }),
+      });
+      setComments(prev => [...prev, ...(Array.isArray(data) ? data : [data])]);
+      setReplyText("");
+      setReplyingTo(null);
+    } catch (e) {
+      setCommentError("Couldn't post reply — " + (e.message || "please try again."));
     }
   }
 
@@ -1248,7 +1296,7 @@ export default function Blog() {
                     </p>
                   )}
 
-                  {postComments.map(c => (
+                  {postComments.filter(c => !c.parent_id).map(c => (
                     <div key={c.id} className="comment-item">
                       <div className="comment-header">
                         <div className="comment-avatar">{c.name[0].toUpperCase()}</div>
@@ -1263,6 +1311,44 @@ export default function Blog() {
                         )}
                       </div>
                       <p className="comment-text">{c.message}</p>
+                      {isAdmin && (
+                        <button className="reply-btn" onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}>
+                          Reply
+                        </button>
+                      )}
+                      {replyingTo === c.id && (
+                        <div className="reply-form">
+                          <textarea className="form-textarea" style={{minHeight:"60px"}} placeholder="Write a reply..."
+                            value={replyText} onChange={e => setReplyText(e.target.value)} />
+                          <div style={{display:"flex",gap:"8px",marginTop:"8px"}}>
+                            <button className="submit-btn" style={{padding:"8px 16px",fontSize:"12px"}} onClick={() => submitReply(activePost.id, c.id)}>
+                              Reply →
+                            </button>
+                            <button onClick={() => { setReplyingTo(null); setReplyText(""); }}
+                              style={{background:"none",border:"none",color:"var(--text-soft)",fontSize:"12px",cursor:"pointer"}}>
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {/* Replies */}
+                      {postComments.filter(r => r.parent_id === c.id).map(r => (
+                        <div key={r.id} className="comment-reply">
+                          <div className="comment-header">
+                            <div className="comment-avatar">{r.name[0].toUpperCase()}</div>
+                            <span className="comment-name">{r.name}</span>
+                            <span className="comment-time">
+                              {new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                            </span>
+                            {isAdmin && (
+                              <button className="comment-delete-btn" onClick={() => deleteComment(r.id)} title="Delete reply">
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                          <p className="comment-text">{r.message}</p>
+                        </div>
+                      ))}
                     </div>
                   ))}
 
