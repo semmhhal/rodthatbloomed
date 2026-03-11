@@ -440,6 +440,36 @@ const styles = `
     letter-spacing: 0.5px;
     margin-bottom: 28px;
   }
+  .share-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    box-shadow: 0 4px 16px rgba(42,26,14,0.12);
+    z-index: 100;
+    min-width: 160px;
+    padding: 6px 0;
+  }
+  .share-menu-item {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 10px 18px;
+    text-align: left;
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .share-menu-item:hover {
+    background: var(--parchment);
+    color: var(--amber);
+  }
 
   /* COMMENTS */
   .comments-section {
@@ -931,6 +961,7 @@ export default function Blog() {
   const [editingPost, setEditingPost] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
   const [shareCopied, setShareCopied] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
   const [replyName, setReplyName] = useState("");
   const [replyText, setReplyText] = useState("");
   const [subEmail, setSubEmail] = useState("");
@@ -1054,19 +1085,34 @@ export default function Blog() {
     return () => window.removeEventListener("hashchange", handleHash);
   }, [posts]);
 
-  async function sharePost(post) {
-    const url = `${window.location.origin}${window.location.pathname}#post/${post.id}`;
-    const shareData = {
-      title: post.title,
-      text: post.excerpt,
-      url,
-    };
-    if (navigator.share) {
-      try { await navigator.share(shareData); } catch {}
-    } else {
-      await navigator.clipboard.writeText(url);
-      setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 2000);
+  function getShareUrl(post) {
+    return `${window.location.origin}${window.location.pathname}#post/${post.id}`;
+  }
+
+  function shareVia(platform, post) {
+    const url = getShareUrl(post);
+    const text = `${post.title} — ${post.excerpt}`;
+    const encoded = encodeURIComponent(text + "\n" + url);
+    const encodedUrl = encodeURIComponent(url);
+    const encodedText = encodeURIComponent(text);
+    setShowShareMenu(false);
+    switch (platform) {
+      case "imessage":
+        window.open(`sms:&body=${encoded}`); break;
+      case "whatsapp":
+        window.open(`https://wa.me/?text=${encoded}`); break;
+      case "telegram":
+        window.open(`https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`); break;
+      case "gmail":
+        window.open(`https://mail.google.com/mail/?view=cm&su=${encodeURIComponent(post.title)}&body=${encoded}`); break;
+      case "twitter":
+        window.open(`https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`); break;
+      case "copy":
+        navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2000);
+        break;
+      default: break;
     }
   }
 
@@ -1327,15 +1373,25 @@ export default function Blog() {
               <article className="post-full">
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <button className="back-btn" onClick={() => { setView("home"); window.location.hash = ""; }}>← Back to entries</button>
-                  <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
+                  <div style={{position:"relative",display:"flex",alignItems:"center",gap:"8px"}}>
                     {shareCopied && <span className="share-copied">Link copied!</span>}
-                    <button className="share-icon-btn" onClick={() => sharePost(activePost)} title="Share this entry">
+                    <button className="share-icon-btn" onClick={() => setShowShareMenu(!showShareMenu)} title="Share this entry">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
                         <polyline points="16 6 12 2 8 6"/>
                         <line x1="12" y1="2" x2="12" y2="15"/>
                       </svg>
                     </button>
+                    {showShareMenu && (
+                      <div className="share-menu">
+                        <button className="share-menu-item" onClick={() => shareVia("imessage", activePost)}>iMessage</button>
+                        <button className="share-menu-item" onClick={() => shareVia("whatsapp", activePost)}>WhatsApp</button>
+                        <button className="share-menu-item" onClick={() => shareVia("telegram", activePost)}>Telegram</button>
+                        <button className="share-menu-item" onClick={() => shareVia("gmail", activePost)}>Gmail</button>
+                        <button className="share-menu-item" onClick={() => shareVia("twitter", activePost)}>Twitter / X</button>
+                        <button className="share-menu-item" onClick={() => shareVia("copy", activePost)}>Copy Link</button>
+                      </div>
+                    )}
                   </div>
                   {isAdmin && (
                     <div style={{display:"flex",gap:"8px"}}>
