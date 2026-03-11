@@ -205,8 +205,8 @@ const styles = `
     font-weight: 500;
   }
   .about-photo {
-    width: 80px;
-    height: 80px;
+    width: 110px;
+    height: 110px;
     border-radius: 50%;
     object-fit: cover;
     display: block;
