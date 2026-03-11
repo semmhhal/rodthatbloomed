@@ -420,35 +420,25 @@ const styles = `
   }
 
   /* SHARE */
-  .share-section {
-    text-align: center;
-    margin: 32px 0;
+  .share-icon-btn {
+    background: none;
+    border: none;
+    color: var(--amber);
+    cursor: pointer;
+    padding: 4px;
+    margin-bottom: 28px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 12px;
   }
-  .share-btn {
-    background: none;
-    border: 1px solid var(--amber);
-    color: var(--amber);
-    font-family: 'Lora', serif;
-    font-size: 13px;
-    letter-spacing: 1px;
-    padding: 10px 24px;
-    cursor: pointer;
-    border-radius: 2px;
-    transition: background 0.2s, color 0.2s;
-  }
-  .share-btn:hover {
-    background: var(--amber);
-    color: white;
-  }
+  .share-icon-btn:hover { opacity: 1; }
   .share-copied {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--sage);
     font-style: italic;
     letter-spacing: 0.5px;
+    margin-bottom: 28px;
   }
 
   /* COMMENTS */
@@ -1336,7 +1326,17 @@ export default function Blog() {
             {view === "post" && activePost && (
               <article className="post-full">
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <button className="back-btn" onClick={() => { setView("home"); window.location.hash = ""; }}>← Back to entries</button>
+                  <div style={{display:"flex",alignItems:"center",gap:"16px"}}>
+                    <button className="back-btn" onClick={() => { setView("home"); window.location.hash = ""; }}>← Back to entries</button>
+                    <button className="share-icon-btn" onClick={() => sharePost(activePost)} title="Share this entry">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                        <polyline points="16 6 12 2 8 6"/>
+                        <line x1="12" y1="2" x2="12" y2="15"/>
+                      </svg>
+                    </button>
+                    {shareCopied && <span className="share-copied">Link copied!</span>}
+                  </div>
                   {isAdmin && (
                     <div style={{display:"flex",gap:"8px"}}>
                       <button className="edit-post-btn" onClick={() => startEditPost(activePost)}>
@@ -1358,12 +1358,6 @@ export default function Blog() {
                   {activePost.body.split("\n\n").map((para, i) => (
                     <p key={i}>{renderLinkedText(para)}</p>
                   ))}
-                </div>
-                <div className="share-section">
-                  <button className="share-btn" onClick={() => sharePost(activePost)}>
-                    Share This Entry →
-                  </button>
-                  {shareCopied && <span className="share-copied">Link copied!</span>}
                 </div>
                 <div className="divider" style={{marginBottom:0}}>✦</div>
 
