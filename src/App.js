@@ -20,7 +20,7 @@ async function sbFetch(path, options = {}) {
     "Authorization": `Bearer ${SUPABASE_KEY}`,
     "Content-Type": "application/json",
   };
-  if (options.method === "POST") {
+  if (options.method === "POST" || options.method === "PATCH") {
     headers["Prefer"] = "return=representation";
   }
   const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
