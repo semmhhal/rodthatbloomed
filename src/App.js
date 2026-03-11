@@ -897,6 +897,7 @@ export default function Blog() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
+  const [replyName, setReplyName] = useState("");
   const [replyText, setReplyText] = useState("");
   const [subEmail, setSubEmail] = useState("");
   const [subSuccess, setSubSuccess] = useState(false);
@@ -1031,19 +1032,20 @@ export default function Blog() {
   }
 
   async function submitReply(postId, parentId) {
-    if (!replyText.trim()) return;
+    if (!replyText.trim() || !replyName.trim()) return;
     try {
       const data = await sbFetch("/comments", {
         method: "POST",
         body: JSON.stringify({
           post_id: postId,
           parent_id: parentId,
-          name: "Semhal",
+          name: replyName.trim(),
           message: replyText.trim(),
         }),
       });
       setComments(prev => [...prev, ...(Array.isArray(data) ? data : [data])]);
       setReplyText("");
+      setReplyName("");
       setReplyingTo(null);
     } catch (e) {
       setCommentError("Couldn't post reply — " + (e.message || "please try again."));
@@ -1311,20 +1313,20 @@ export default function Blog() {
                         )}
                       </div>
                       <p className="comment-text">{c.message}</p>
-                      {isAdmin && (
-                        <button className="reply-btn" onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}>
-                          Reply
-                        </button>
-                      )}
+                      <button className="reply-btn" onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyName(""); setReplyText(""); }}>
+                        Reply
+                      </button>
                       {replyingTo === c.id && (
                         <div className="reply-form">
+                          <input className="form-input" style={{marginBottom:"8px"}} placeholder="Your name"
+                            value={replyName} onChange={e => setReplyName(e.target.value)} />
                           <textarea className="form-textarea" style={{minHeight:"60px"}} placeholder="Write a reply..."
                             value={replyText} onChange={e => setReplyText(e.target.value)} />
                           <div style={{display:"flex",gap:"8px",marginTop:"8px"}}>
                             <button className="submit-btn" style={{padding:"8px 16px",fontSize:"12px"}} onClick={() => submitReply(activePost.id, c.id)}>
                               Reply →
                             </button>
-                            <button onClick={() => { setReplyingTo(null); setReplyText(""); }}
+                            <button onClick={() => { setReplyingTo(null); setReplyName(""); setReplyText(""); }}
                               style={{background:"none",border:"none",color:"var(--text-soft)",fontSize:"12px",cursor:"pointer"}}>
                               Cancel
                             </button>
