@@ -1343,14 +1343,13 @@ export default function Blog() {
               <div className="sidebar-title">Archive</div>
               {Object.keys(archive).sort((a,b)=>b-a).map(year => (
                 <div key={year}>
-                  <div className="archive-year">{year}</div>
                   {Object.keys(archive[year]).sort((a,b)=>b-a).map(m => {
                     const label = MONTHS[parseInt(m,10)-1];
                     const key = `${year}-${m}`;
                     return (
                       <div key={m} className="archive-month"
                         onClick={() => { setFilterMonth(filterMonth===key?null:key); setView("home"); setActivePost(null); }}>
-                        <span style={filterMonth===key?{color:"var(--amber)"}:{}}>{label}</span>
+                        <span style={filterMonth===key?{color:"var(--amber)"}:{}}>{label} {year}</span>
                         <span className="count">{archive[year][m]}</span>
                       </div>
                     );
