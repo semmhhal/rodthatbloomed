@@ -1336,7 +1336,7 @@ export default function Blog() {
               <div className="sidebar-title">Search</div>
               <input className="search-input" type="text" placeholder="Search entries..."
                 value={searchQuery}
-                onChange={e => { setSearchQuery(e.target.value); setView("home"); setActivePost(null); setActiveNav("stories"); }} />
+                onChange={e => { setSearchQuery(e.target.value); setFilterTag(null); setFilterMonth(null); setView("home"); setActivePost(null); setActiveNav("stories"); }} />
             </div>
 
             <div className="sidebar-section">
