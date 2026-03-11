@@ -204,6 +204,15 @@ const styles = `
     border-radius: 20px;
     font-weight: 500;
   }
+  .about-photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto 16px;
+    border: 2px solid var(--border);
+  }
   .about-text {
     font-size: 13px;
     line-height: 1.8;
@@ -1178,6 +1187,7 @@ export default function Blog() {
           <aside className="sidebar">
             <div className={`sidebar-section${activeNav==="about"?" sidebar-highlight":""}`}>
               <div className="sidebar-title">About This Space</div>
+              <img src={`${process.env.PUBLIC_URL}/semhal.jpeg`} alt="Semhal" className="about-photo" />
               <p className="about-text">
                 Hi, my name is Semhal. This is my open door — a place where I pour out whatever is sitting heavy on my heart and share what God has been gently teaching me through it all. About faith, childhood, womanhood, relationships, the wrestling, the healing — and the slow bloom that comes from being held even when you can't feel it. No performance, no polish. Just honesty, and the belief that someone out there needed to hear it too.
               </p>
