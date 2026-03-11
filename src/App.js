@@ -492,6 +492,8 @@ const styles = `
   .reply-form {
     margin-left: 44px;
     margin-top: 12px;
+    display: flex;
+    flex-direction: column;
   }
   .comment-reply {
     margin-left: 44px;
@@ -1318,9 +1320,9 @@ export default function Blog() {
                       </button>
                       {replyingTo === c.id && (
                         <div className="reply-form">
-                          <input className="form-input" style={{marginBottom:"8px"}} placeholder="Your name"
+                          <input className="form-input" style={{marginBottom:"8px",width:"100%",boxSizing:"border-box"}} placeholder="Your name"
                             value={replyName} onChange={e => setReplyName(e.target.value)} />
-                          <textarea className="form-textarea" style={{minHeight:"60px"}} placeholder="Write a reply..."
+                          <textarea className="form-textarea" style={{minHeight:"60px",width:"100%",boxSizing:"border-box"}} placeholder="Write a reply..."
                             value={replyText} onChange={e => setReplyText(e.target.value)} />
                           <div style={{display:"flex",gap:"8px",marginTop:"8px"}}>
                             <button className="submit-btn" style={{padding:"8px 16px",fontSize:"12px"}} onClick={() => submitReply(activePost.id, c.id)}>
