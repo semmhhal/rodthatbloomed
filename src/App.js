@@ -1023,6 +1023,17 @@ export default function Blog() {
       setPosts(prev => [...prev, p]);
       setNewPost({ title: "", body: "", tag: "Faith" });
       setShowWrite(false);
+      // Notify subscribers
+      try {
+        await fetch(`${SUPABASE_URL}/functions/v1/notify-subscribers`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SUPABASE_KEY}`,
+          },
+          body: JSON.stringify({ title: saved.title, excerpt: saved.excerpt }),
+        });
+      } catch {}
     } catch (e) {
       console.error("Could not publish post:", e);
     }
@@ -1401,7 +1412,7 @@ export default function Blog() {
           and brought forth buds, and bloomed blossoms, and yielded almonds."
           <span className="footer-verse-ref">Numbers 17 : 8</span>
         </p>
-        <p className="footer-copy">© rodthatbloomed.blog</p>
+        <p className="footer-copy">© rodthatbloomed.com</p>
         {/* Hidden admin dot — only you know it's here */}
         <div className="admin-dot" title="" onClick={() => setShowPwModal(true)} />
       </footer>
