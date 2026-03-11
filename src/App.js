@@ -419,6 +419,38 @@ const styles = `
     opacity: 0.6;
   }
 
+  /* SHARE */
+  .share-section {
+    text-align: center;
+    margin: 32px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .share-btn {
+    background: none;
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    letter-spacing: 1px;
+    padding: 10px 24px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .share-btn:hover {
+    background: var(--amber);
+    color: white;
+  }
+  .share-copied {
+    font-size: 12px;
+    color: var(--sage);
+    font-style: italic;
+    letter-spacing: 0.5px;
+  }
+
   /* COMMENTS */
   .comments-section {
     margin-top: 48px;
@@ -908,6 +940,7 @@ export default function Blog() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
+  const [shareCopied, setShareCopied] = useState(false);
   const [replyName, setReplyName] = useState("");
   const [replyText, setReplyText] = useState("");
   const [subEmail, setSubEmail] = useState("");
@@ -1009,7 +1042,42 @@ export default function Blog() {
     setView("post");
     setSubmitSuccess(false);
     fetchComments(post.id);
+    window.location.hash = `post/${post.id}`;
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Open post from URL hash
+  useEffect(() => {
+    function handleHash() {
+      const match = window.location.hash.match(/^#post\/(.+)$/);
+      if (match && posts.length > 0) {
+        const post = posts.find(p => String(p.id) === match[1]);
+        if (post) {
+          setActivePost(post);
+          setView("post");
+          fetchComments(post.id);
+        }
+      }
+    }
+    handleHash();
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  }, [posts]);
+
+  async function sharePost(post) {
+    const url = `${window.location.origin}${window.location.pathname}#post/${post.id}`;
+    const shareData = {
+      title: post.title,
+      text: post.excerpt,
+      url,
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch {}
+    } else {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    }
   }
 
   async function submitComment(postId) {
@@ -1268,7 +1336,7 @@ export default function Blog() {
             {view === "post" && activePost && (
               <article className="post-full">
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <button className="back-btn" onClick={() => setView("home")}>← Back to entries</button>
+                  <button className="back-btn" onClick={() => { setView("home"); window.location.hash = ""; }}>← Back to entries</button>
                   {isAdmin && (
                     <div style={{display:"flex",gap:"8px"}}>
                       <button className="edit-post-btn" onClick={() => startEditPost(activePost)}>
@@ -1290,6 +1358,12 @@ export default function Blog() {
                   {activePost.body.split("\n\n").map((para, i) => (
                     <p key={i}>{renderLinkedText(para)}</p>
                   ))}
+                </div>
+                <div className="share-section">
+                  <button className="share-btn" onClick={() => sharePost(activePost)}>
+                    Share This Entry →
+                  </button>
+                  {shareCopied && <span className="share-copied">Link copied!</span>}
                 </div>
                 <div className="divider" style={{marginBottom:0}}>✦</div>
 
