@@ -1368,17 +1368,12 @@ export default function Blog() {
             <div className="sidebar-section">
               <div className="sidebar-title">Categories</div>
               <div className="categories-list">
-                {TAGS.map(t => {
-                  const count = posts.filter(p => p.tag === t).length;
-                  if (count === 0) return null;
-                  return (
-                    <div key={t} className="category-item"
-                      onClick={() => { setFilterTag(filterTag === t ? null : t); setView("home"); setActivePost(null); setActiveNav("stories"); }}>
-                      <span style={filterTag === t ? {color:"var(--amber)"} : {}}>{t}</span>
-                      <span className="count">{count}</span>
-                    </div>
-                  );
-                })}
+                {TAGS.map(t => (
+                  <div key={t} className="category-item"
+                    onClick={() => { setFilterTag(filterTag === t ? null : t); setView("home"); setActivePost(null); setActiveNav("stories"); }}>
+                    <span style={filterTag === t ? {color:"var(--amber)"} : {}}>{t}</span>
+                  </div>
+                ))}
               </div>
               {filterTag && (
                 <button onClick={() => setFilterTag(null)}
