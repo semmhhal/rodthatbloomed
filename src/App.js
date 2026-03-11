@@ -204,6 +204,33 @@ const styles = `
     border-radius: 20px;
     font-weight: 500;
   }
+  .search-input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border);
+    background: white;
+    padding: 10px 14px;
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    color: var(--text);
+    border-radius: 2px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--amber-light); }
+  .search-input::placeholder { color: var(--amber-light); font-style: italic; }
+  .categories-list { display: flex; flex-direction: column; }
+  .category-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: color 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .category-item:hover { color: var(--amber); }
   .about-photo {
     width: 110px;
     height: 110px;
@@ -962,6 +989,8 @@ export default function Blog() {
   const [replyingTo, setReplyingTo] = useState(null);
   const [shareCopied, setShareCopied] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterTag, setFilterTag] = useState(null);
   const [replyName, setReplyName] = useState("");
   const [replyText, setReplyText] = useState("");
   const [subEmail, setSubEmail] = useState("");
@@ -1054,9 +1083,18 @@ export default function Blog() {
     archive[y][m]++;
   });
 
-  const displayedPosts = filterMonth
-    ? posts.filter(p => p.monthKey === filterMonth)
-    : posts;
+  const displayedPosts = posts.filter(p => {
+    if (filterMonth && p.monthKey !== filterMonth) return false;
+    if (filterTag && p.tag !== filterTag) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      return (p.title || "").toLowerCase().includes(q) ||
+             (p.excerpt || "").toLowerCase().includes(q) ||
+             (p.body || "").toLowerCase().includes(q) ||
+             (p.tag || "").toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   function openPost(post) {
     setActivePost(post);
@@ -1295,6 +1333,13 @@ export default function Blog() {
             </div>
 
             <div className="sidebar-section">
+              <div className="sidebar-title">Search</div>
+              <input className="search-input" type="text" placeholder="Search entries..."
+                value={searchQuery}
+                onChange={e => { setSearchQuery(e.target.value); setView("home"); setActivePost(null); setActiveNav("stories"); }} />
+            </div>
+
+            <div className="sidebar-section">
               <div className="sidebar-title">Archive</div>
               {Object.keys(archive).sort((a,b)=>b-a).map(year => (
                 <div key={year}>
@@ -1314,6 +1359,29 @@ export default function Blog() {
               ))}
               {filterMonth && (
                 <button onClick={() => setFilterMonth(null)}
+                  style={{background:"none",border:"none",color:"var(--blush)",fontSize:"12px",cursor:"pointer",marginTop:"12px",letterSpacing:"1px"}}>
+                  ✕ Clear filter
+                </button>
+              )}
+            </div>
+
+            <div className="sidebar-section">
+              <div className="sidebar-title">Categories</div>
+              <div className="categories-list">
+                {TAGS.map(t => {
+                  const count = posts.filter(p => p.tag === t).length;
+                  if (count === 0) return null;
+                  return (
+                    <div key={t} className="category-item"
+                      onClick={() => { setFilterTag(filterTag === t ? null : t); setView("home"); setActivePost(null); setActiveNav("stories"); }}>
+                      <span style={filterTag === t ? {color:"var(--amber)"} : {}}>{t}</span>
+                      <span className="count">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              {filterTag && (
+                <button onClick={() => setFilterTag(null)}
                   style={{background:"none",border:"none",color:"var(--blush)",fontSize:"12px",cursor:"pointer",marginTop:"12px",letterSpacing:"1px"}}>
                   ✕ Clear filter
                 </button>
@@ -1344,7 +1412,7 @@ export default function Blog() {
             {view === "home" && activeNav !== "contact" && (
               <>
                 <div className="section-heading">
-                  {filterMonth ? `${MONTHS[parseInt(filterMonth.split("-")[1],10)-1]} ${filterMonth.split("-")[0]}` : "Recent Entries"}
+                  {searchQuery.trim() ? `Results for "${searchQuery}"` : filterTag ? filterTag : filterMonth ? `${MONTHS[parseInt(filterMonth.split("-")[1],10)-1]} ${filterMonth.split("-")[0]}` : "Recent Entries"}
                 </div>
                 {displayedPosts.length === 0 && (
                   <div className="empty-state">
