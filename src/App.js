@@ -1416,7 +1416,7 @@ export default function Blog() {
                     const key = `${year}-${m}`;
                     return (
                       <div key={m} className="archive-month"
-                        onClick={() => { setFilterMonth(filterMonth===key?null:key); setView("home"); setActivePost(null); window.scrollTo({top:0,behavior:"smooth"}); }}>
+                        onClick={() => { setFilterMonth(filterMonth===key?null:key); setView("home"); setActivePost(null); }}>
                         <span style={filterMonth===key?{color:"var(--amber)"}:{}}>{label} {year}</span>
                         <span className="count">{archive[year][m]}</span>
                       </div>
