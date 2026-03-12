@@ -204,6 +204,20 @@ const styles = `
     border-radius: 20px;
     font-weight: 500;
   }
+  .archive-posts-list {
+    margin-top: 10px;
+    padding-left: 12px;
+    border-left: 2px solid var(--border);
+  }
+  .archive-post-title {
+    font-size: 13px;
+    color: var(--text-soft);
+    padding: 5px 0;
+    cursor: pointer;
+    font-style: italic;
+    transition: color 0.2s;
+  }
+  .archive-post-title:hover { color: var(--amber); }
   .search-input {
     width: 100%;
     box-sizing: border-box;
@@ -1411,10 +1425,19 @@ export default function Blog() {
                 </div>
               ))}
               {filterMonth && (
-                <button onClick={() => setFilterMonth(null)}
-                  style={{background:"none",border:"none",color:"var(--blush)",fontSize:"12px",cursor:"pointer",marginTop:"12px",letterSpacing:"1px"}}>
-                  ✕ Clear filter
-                </button>
+                <>
+                  <div className="archive-posts-list">
+                    {posts.filter(p => p.monthKey === filterMonth).map(p => (
+                      <div key={p.id} className="archive-post-title" onClick={() => openPost(p)}>
+                        {p.title}
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => setFilterMonth(null)}
+                    style={{background:"none",border:"none",color:"var(--blush)",fontSize:"12px",cursor:"pointer",marginTop:"12px",letterSpacing:"1px"}}>
+                    ✕ Clear filter
+                  </button>
+                </>
               )}
             </div>
 
