@@ -446,6 +446,30 @@ const styles = `
     opacity: 0.6;
   }
 
+  /* LIKE */
+  .like-section {
+    text-align: center;
+    margin: 28px 0;
+  }
+  .like-btn {
+    background: none;
+    border: none;
+    color: var(--amber);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Lora', serif;
+    font-size: 15px;
+    padding: 8px 16px;
+    border-radius: 2px;
+    transition: color 0.2s, transform 0.2s;
+  }
+  .like-btn:hover { transform: scale(1.1); }
+  .like-btn.liked {
+    color: var(--blush);
+  }
+
   /* SHARE */
   .share-icon-btn {
     background: none;
@@ -991,6 +1015,10 @@ export default function Blog() {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTag, setFilterTag] = useState(null);
+  const [likes, setLikes] = useState({});
+  const [likedPosts, setLikedPosts] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("rtb-liked") || "[]"); } catch { return []; }
+  });
   const [replyName, setReplyName] = useState("");
   const [replyText, setReplyText] = useState("");
   const [subEmail, setSubEmail] = useState("");
@@ -1059,6 +1087,32 @@ export default function Blog() {
         setSubError("Couldn't subscribe — " + (e.message || "please try again."));
       }
     }
+  }
+
+  // Fetch all likes counts
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await sbFetch("/likes?select=post_id");
+        const counts = {};
+        data.forEach(l => { counts[l.post_id] = (counts[l.post_id] || 0) + 1; });
+        setLikes(counts);
+      } catch {}
+    })();
+  }, []);
+
+  async function likePost(postId) {
+    if (likedPosts.includes(postId)) return;
+    try {
+      await sbFetch("/likes", {
+        method: "POST",
+        body: JSON.stringify({ post_id: postId }),
+      });
+      setLikes(prev => ({ ...prev, [postId]: (prev[postId] || 0) + 1 }));
+      const updated = [...likedPosts, postId];
+      setLikedPosts(updated);
+      localStorage.setItem("rtb-liked", JSON.stringify(updated));
+    } catch {}
   }
 
   // Fetch comments from Supabase when a post is opened
@@ -1473,6 +1527,15 @@ export default function Blog() {
                   {activePost.body.split("\n\n").map((para, i) => (
                     <p key={i}>{renderLinkedText(para)}</p>
                   ))}
+                </div>
+                <div className="like-section">
+                  <button className={`like-btn${likedPosts.includes(activePost.id) ? " liked" : ""}`}
+                    onClick={() => likePost(activePost.id)}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill={likedPosts.includes(activePost.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    <span>{likes[activePost.id] || 0}</span>
+                  </button>
                 </div>
                 <div className="divider" style={{marginBottom:0}}>✦</div>
 
