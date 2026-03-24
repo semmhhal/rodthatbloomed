@@ -1236,7 +1236,7 @@ export default function Blog() {
   }, [posts]);
 
   function getShareUrl(post) {
-    return `${window.location.origin}${window.location.pathname}#${slugify(post.title)}`;
+    return `${window.location.origin}/${slugify(post.title)}`;
   }
 
   function shareVia(platform, post) {
