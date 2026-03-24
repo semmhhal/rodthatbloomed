@@ -1094,6 +1094,17 @@ export default function Blog() {
       setSubSuccess(true);
       setSubCount(prev => prev + 1);
       setTimeout(() => setSubSuccess(false), 3000);
+      // Send welcome email
+      try {
+        await fetch(`${SUPABASE_URL}/functions/v1/welcome-subscriber`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SUPABASE_KEY}`,
+          },
+          body: JSON.stringify({ email: newSub.email }),
+        });
+      } catch {}
     } catch (e) {
       if (e.message && e.message.includes("duplicate")) {
         setSubError("You're already subscribed!");
@@ -1817,3 +1828,4 @@ export default function Blog() {
   );
 }
 
+and a
