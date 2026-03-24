@@ -613,6 +613,7 @@ const styles = `
     letter-spacing: 0.5px;
     opacity: 0.7;
     transition: opacity 0.2s;
+    display: block;
   }
   .reply-btn:hover { opacity: 1; }
   .reply-form {
