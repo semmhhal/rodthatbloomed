@@ -1666,7 +1666,7 @@ export default function Blog() {
                       <button className="reply-btn" style={{marginTop:"10px"}} onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyName(""); setReplyText(""); }}>
                         Reply
                       </button>
-                      <button className={`like-btn${likedComments.includes(c.id) ? " liked" : ""}`} style={{fontSize:"11px",padding:"2px 6px",marginTop:"8px"}}
+                      <button className={`like-btn${likedComments.includes(c.id) ? " liked" : ""}`} style={{fontSize:"11px",padding:"2px 6px",marginTop:"2px",marginLeft:"44px"}}
                         onClick={() => likeComment(c.id)}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill={likedComments.includes(c.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
                           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
@@ -1706,7 +1706,7 @@ export default function Blog() {
                             )}
                           </div>
                           <p className="comment-text">{r.message}</p>
-                          <button className={`like-btn${likedComments.includes(r.id) ? " liked" : ""}`} style={{fontSize:"11px",padding:"2px 6px",marginTop:"8px"}}
+                          <button className={`like-btn${likedComments.includes(r.id) ? " liked" : ""}`} style={{fontSize:"11px",padding:"2px 6px",marginTop:"2px"}}
                             onClick={() => likeComment(r.id)}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill={likedComments.includes(r.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
                               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
