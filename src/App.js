@@ -1033,6 +1033,10 @@ export default function Blog() {
   const [likedPosts, setLikedPosts] = useState(() => {
     try { return JSON.parse(localStorage.getItem("rtb-liked") || "[]"); } catch { return []; }
   });
+  const [commentLikes, setCommentLikes] = useState({});
+  const [likedComments, setLikedComments] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("rtb-liked-comments") || "[]"); } catch { return []; }
+  });
   const [replyName, setReplyName] = useState("");
   const [replyText, setReplyText] = useState("");
   const [subEmail, setSubEmail] = useState("");
@@ -1140,6 +1144,20 @@ export default function Blog() {
     } catch {}
   }
 
+  async function likeComment(commentId) {
+    if (likedComments.includes(commentId)) return;
+    try {
+      await sbFetch("/comment_likes", {
+        method: "POST",
+        body: JSON.stringify({ comment_id: commentId }),
+      });
+      setCommentLikes(prev => ({ ...prev, [commentId]: (prev[commentId] || 0) + 1 }));
+      const updated = [...likedComments, commentId];
+      setLikedComments(updated);
+      localStorage.setItem("rtb-liked-comments", JSON.stringify(updated));
+    } catch {}
+  }
+
   // Fetch comments from Supabase when a post is opened
   async function fetchComments(postId) {
     setCommentsLoading(true);
@@ -1147,6 +1165,16 @@ export default function Blog() {
     try {
       const data = await sbFetch(`/comments?select=id,post_id,parent_id,name,message,created_at&post_id=eq.${postId}&order=created_at.asc`);
       setComments(data);
+      // Fetch comment likes
+      const commentIds = data.map(c => c.id);
+      if (commentIds.length > 0) {
+        const likesData = await sbFetch(`/comment_likes?select=comment_id&comment_id=in.(${commentIds.join(",")})`);
+        const counts = {};
+        likesData.forEach(l => { counts[l.comment_id] = (counts[l.comment_id] || 0) + 1; });
+        setCommentLikes(counts);
+      } else {
+        setCommentLikes({});
+      }
     } catch (e) {
       console.error("Could not load comments:", e);
     }
@@ -1607,9 +1635,18 @@ export default function Blog() {
                         )}
                       </div>
                       <p className="comment-text">{c.message}</p>
-                      <button className="reply-btn" onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyName(""); setReplyText(""); }}>
-                        Reply
-                      </button>
+                      <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+                        <button className="reply-btn" onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyName(""); setReplyText(""); }}>
+                          Reply
+                        </button>
+                        <button className={`like-btn${likedComments.includes(c.id) ? " liked" : ""}`} style={{fontSize:"11px",padding:"2px 6px"}}
+                          onClick={() => likeComment(c.id)}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill={likedComments.includes(c.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                          </svg>
+                          {commentLikes[c.id] || 0}
+                        </button>
+                      </div>
                       {replyingTo === c.id && (
                         <div className="reply-form">
                           {!isAdmin && <input className="form-input" style={{marginBottom:"8px",width:"100%",boxSizing:"border-box"}} placeholder="Your name"
@@ -1643,6 +1680,13 @@ export default function Blog() {
                             )}
                           </div>
                           <p className="comment-text">{r.message}</p>
+                          <button className={`like-btn${likedComments.includes(r.id) ? " liked" : ""}`} style={{fontSize:"11px",padding:"2px 6px"}}
+                            onClick={() => likeComment(r.id)}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill={likedComments.includes(r.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                            {commentLikes[r.id] || 0}
+                          </button>
                         </div>
                       ))}
                     </div>
