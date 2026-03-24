@@ -43,7 +43,7 @@ serve(async (req) => {
           body: JSON.stringify({
             sender: { name: "rod that bloomed", email: "noreply@rodthatbloomed.com" },
             to: [{ email: s.email }],
-            subject: `New Entry: ${title}`,
+            subject: title,
             htmlContent: `
               <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #2A1A0E;">
                 <p style="text-align: center; color: #C4A45A; letter-spacing: 8px; font-size: 14px;">✦ ✦ ✦</p>
