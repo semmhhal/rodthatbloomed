@@ -1204,21 +1204,25 @@ export default function Blog() {
     return true;
   });
 
+  function slugify(title) {
+    return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+
   function openPost(post) {
     setActivePost(post);
     setView("post");
     setSubmitSuccess(false);
     fetchComments(post.id);
-    window.location.hash = `post/${post.id}`;
+    window.location.hash = slugify(post.title);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   // Open post from URL hash
   useEffect(() => {
     function handleHash() {
-      const match = window.location.hash.match(/^#post\/(.+)$/);
-      if (match && posts.length > 0) {
-        const post = posts.find(p => String(p.id) === match[1]);
+      const hash = window.location.hash.replace(/^#/, "");
+      if (hash && posts.length > 0) {
+        const post = posts.find(p => slugify(p.title) === hash) || posts.find(p => String(p.id) === hash);
         if (post) {
           setActivePost(post);
           setView("post");
@@ -1232,7 +1236,7 @@ export default function Blog() {
   }, [posts]);
 
   function getShareUrl(post) {
-    return `${window.location.origin}${window.location.pathname}#post/${post.id}`;
+    return `${window.location.origin}${window.location.pathname}#${slugify(post.title)}`;
   }
 
   function shareVia(platform, post) {
