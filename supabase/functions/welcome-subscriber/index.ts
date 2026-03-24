@@ -22,7 +22,7 @@ serve(async (req) => {
         "api-key": BREVO_API_KEY,
       },
       body: JSON.stringify({
-        sender: { name: "rod that bloomed", email: "noreply@rodthatbloomed.com" },
+        sender: { name: "rod that bloomed", email: "semhal@rodthatbloomed.com" },
         to: [{ email }],
         subject: "Welcome to rod that bloomed",
         htmlContent: `
