@@ -34,6 +34,7 @@ serve(async (req) => {
     const results = [];
     for (const s of subscribers) {
       try {
+        const unsubUrl = `https://petexirslmjvjefzfcuv.supabase.co/functions/v1/unsubscribe?email=${encodeURIComponent(s.email)}`;
         const res = await fetch("https://api.brevo.com/v3/smtp/email", {
           method: "POST",
           headers: {
@@ -46,7 +47,7 @@ serve(async (req) => {
             to: [{ email: s.email }],
             subject: title,
             headers: {
-              "List-Unsubscribe": "<https://rodthatbloomed.com>",
+              "List-Unsubscribe": `<${unsubUrl}>`,
             },
             textContent: `${title}
 
@@ -54,7 +55,9 @@ ${excerpt}
 
 Read more: https://rodthatbloomed.com
 
-You're receiving this because you subscribed to rod that bloomed.`,
+You're receiving this because you subscribed to rod that bloomed.
+
+Unsubscribe: ${unsubUrl}`,
             htmlContent: `
               <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #2A1A0E; padding: 40px 20px;">
                 <h1 style="font-size: 28px; font-weight: 300; text-align: center; color: #2A1A0E;">${title}</h1>
@@ -64,6 +67,9 @@ You're receiving this because you subscribed to rod that bloomed.`,
                 </p>
                 <p style="text-align: center; font-size: 11px; color: #A0906E; margin-top: 20px;">
                   You're receiving this because you subscribed to rod that bloomed.
+                </p>
+                <p style="text-align: center; font-size: 11px; margin-top: 8px;">
+                  <a href="${unsubUrl}" style="color: #A0906E; text-decoration: underline;">Unsubscribe</a>
                 </p>
               </div>
             `,

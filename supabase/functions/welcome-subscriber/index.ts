@@ -15,6 +15,8 @@ serve(async (req) => {
   try {
     const { email } = await req.json();
 
+    const unsubUrl = `https://petexirslmjvjefzfcuv.supabase.co/functions/v1/unsubscribe?email=${encodeURIComponent(email)}`;
+
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
@@ -27,7 +29,7 @@ serve(async (req) => {
         to: [{ email }],
         subject: "Welcome to rod that bloomed",
         headers: {
-          "List-Unsubscribe": "<https://rodthatbloomed.com>",
+          "List-Unsubscribe": `<${unsubUrl}>`,
         },
         textContent: `Hi there,
 
@@ -44,7 +46,9 @@ You'll hear from me whenever a new entry is published.
 With love,
 Semhal
 
-Visit: https://rodthatbloomed.com`,
+Visit: https://rodthatbloomed.com
+
+Unsubscribe: ${unsubUrl}`,
         htmlContent: `
           <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #2A1A0E; padding: 40px 20px;">
             <h1 style="font-size: 28px; font-weight: 300; text-align: center; color: #2A1A0E; margin-bottom: 24px;">
@@ -70,6 +74,9 @@ Visit: https://rodthatbloomed.com`,
             </p>
             <p style="text-align: center; margin-top: 32px;">
               <a href="https://rodthatbloomed.com" style="color: #8B6914; font-size: 13px; text-decoration: none;">Visit rod that bloomed</a>
+            </p>
+            <p style="text-align: center; font-size: 11px; color: #A0906E; margin-top: 24px;">
+              <a href="${unsubUrl}" style="color: #A0906E; text-decoration: underline;">Unsubscribe</a>
             </p>
           </div>
         `,
