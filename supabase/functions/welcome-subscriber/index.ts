@@ -22,12 +22,31 @@ serve(async (req) => {
         "api-key": BREVO_API_KEY,
       },
       body: JSON.stringify({
-        sender: { name: "rod that bloomed", email: "semhal@rodthatbloomed.com" },
+        sender: { name: "Semhal", email: "semhal@rodthatbloomed.com" },
+        replyTo: { name: "Semhal", email: "semhal@rodthatbloomed.com" },
         to: [{ email }],
         subject: "Welcome to rod that bloomed",
+        headers: {
+          "List-Unsubscribe": "<https://rodthatbloomed.com>",
+        },
+        textContent: `Hi there,
+
+Thank you for subscribing to rod that bloomed.
+
+This space is my open door - a place where I pour out whatever is sitting heavy on my heart and share what God has been gently teaching me through it all.
+
+About faith, childhood, womanhood, relationships, the wrestling, the healing - and the slow bloom that comes from being held even when you can't feel it.
+
+No performance, no polish. Just honesty, and the belief that someone out there needed to hear it too.
+
+You'll hear from me whenever a new entry is published.
+
+With love,
+Semhal
+
+Visit: https://rodthatbloomed.com`,
         htmlContent: `
           <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #2A1A0E; padding: 40px 20px;">
-            <p style="text-align: center; color: #C4A45A; letter-spacing: 8px; font-size: 14px;">✦ ✦ ✦</p>
             <h1 style="font-size: 28px; font-weight: 300; text-align: center; color: #2A1A0E; margin-bottom: 24px;">
               Welcome to rod that bloomed
             </h1>
@@ -50,9 +69,8 @@ serve(async (req) => {
               With love,<br/>Semhal
             </p>
             <p style="text-align: center; margin-top: 32px;">
-              <a href="https://rodthatbloomed.com" style="color: #8B6914; letter-spacing: 1px; font-size: 13px; text-decoration: none;">Visit rod that bloomed →</a>
+              <a href="https://rodthatbloomed.com" style="color: #8B6914; font-size: 13px; text-decoration: none;">Visit rod that bloomed</a>
             </p>
-            <p style="text-align: center; color: #C4A45A; letter-spacing: 8px; font-size: 14px; margin-top: 28px;">✦</p>
           </div>
         `,
       }),

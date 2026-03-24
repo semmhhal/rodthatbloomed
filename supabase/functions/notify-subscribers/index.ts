@@ -41,18 +41,27 @@ serve(async (req) => {
             "api-key": BREVO_API_KEY,
           },
           body: JSON.stringify({
-            sender: { name: "rod that bloomed", email: "semhal@rodthatbloomed.com" },
+            sender: { name: "Semhal", email: "semhal@rodthatbloomed.com" },
+            replyTo: { name: "Semhal", email: "semhal@rodthatbloomed.com" },
             to: [{ email: s.email }],
             subject: title,
+            headers: {
+              "List-Unsubscribe": "<https://rodthatbloomed.com>",
+            },
+            textContent: `${title}
+
+${excerpt}
+
+Read more: https://rodthatbloomed.com
+
+You're receiving this because you subscribed to rod that bloomed.`,
             htmlContent: `
-              <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #2A1A0E;">
-                <p style="text-align: center; color: #C4A45A; letter-spacing: 8px; font-size: 14px;">✦ ✦ ✦</p>
+              <div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #2A1A0E; padding: 40px 20px;">
                 <h1 style="font-size: 28px; font-weight: 300; text-align: center; color: #2A1A0E;">${title}</h1>
                 <p style="font-size: 15px; line-height: 1.8; color: #5C4A3A; font-style: italic;">${excerpt}</p>
                 <p style="text-align: center; margin-top: 28px;">
-                  <a href="https://rodthatbloomed.com" style="color: #8B6914; letter-spacing: 1px; font-size: 13px; text-decoration: none;">Continue Reading →</a>
+                  <a href="https://rodthatbloomed.com" style="color: #8B6914; font-size: 13px; text-decoration: none;">Continue Reading</a>
                 </p>
-                <p style="text-align: center; color: #C4A45A; letter-spacing: 8px; font-size: 14px; margin-top: 28px;">✦</p>
                 <p style="text-align: center; font-size: 11px; color: #A0906E; margin-top: 20px;">
                   You're receiving this because you subscribed to rod that bloomed.
                 </p>
