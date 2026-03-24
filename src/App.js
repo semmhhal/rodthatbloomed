@@ -1827,5 +1827,3 @@ export default function Blog() {
     </>
   );
 }
-
-and a
