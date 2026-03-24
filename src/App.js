@@ -1019,7 +1019,7 @@ export default function Blog() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [showWrite, setShowWrite] = useState(false);
   const [filterMonth, setFilterMonth] = useState(null);
-  const [newComment, setNewComment] = useState({ name: "", message: "" });
+  const [newComment, setNewComment] = useState({ name: "", email: "", message: "" });
   const [newPost, setNewPost] = useState({ title: "", body: "", tag: "Faith" });
   const [activeNav, setActiveNav] = useState("stories");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -1163,7 +1163,7 @@ export default function Blog() {
     setCommentsLoading(true);
     setComments([]);
     try {
-      const data = await sbFetch(`/comments?select=id,post_id,parent_id,name,message,created_at&post_id=eq.${postId}&order=created_at.asc`);
+      const data = await sbFetch(`/comments?select=id,post_id,parent_id,name,email,message,created_at&post_id=eq.${postId}&order=created_at.asc`);
       setComments(data);
       // Fetch comment likes
       const commentIds = data.map(c => c.id);
@@ -1263,16 +1263,18 @@ export default function Blog() {
     if (!commentName || !newComment.message.trim()) return;
     setCommentError("");
     try {
+      const commentBody = {
+        post_id: postId,
+        name: commentName,
+        message: newComment.message.trim(),
+      };
+      if (!isAdmin && newComment.email.trim()) commentBody.email = newComment.email.trim();
       const data = await sbFetch("/comments", {
         method: "POST",
-        body: JSON.stringify({
-          post_id: postId,
-          name: commentName,
-          message: newComment.message.trim(),
-        }),
+        body: JSON.stringify(commentBody),
       });
       setComments(prev => [...prev, ...(Array.isArray(data) ? data : [data])]);
-      setNewComment({ name: "", message: "" });
+      setNewComment({ name: "", email: "", message: "" });
       setSubmitSuccess(true);
       setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (e) {
@@ -1303,6 +1305,23 @@ export default function Blog() {
         }),
       });
       setComments(prev => [...prev, ...(Array.isArray(data) ? data : [data])]);
+      // Notify parent comment author
+      const parentComment = comments.find(c => c.id === parentId);
+      if (parentComment && parentComment.email) {
+        try {
+          await fetch(`${SUPABASE_URL}/functions/v1/notify-reply`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_KEY}` },
+            body: JSON.stringify({
+              email: parentComment.email,
+              commenterName: parentComment.name,
+              replyName: rName,
+              replyMessage: replyText.trim(),
+              postTitle: activePost.title,
+            }),
+          });
+        } catch {}
+      }
       setReplyText("");
       setReplyName("");
       setReplyingTo(null);
@@ -1703,8 +1722,10 @@ export default function Blog() {
                             onChange={e => setNewComment(p => ({...p, name: e.target.value}))} />
                         </div>
                         <div className="form-field">
-                          <label className="form-label">Also Known As (optional)</label>
-                          <input className="form-input" placeholder="a sojourner, a friend..." />
+                          <label className="form-label">Your Email (optional, for reply notifications)</label>
+                          <input className="form-input" type="email" placeholder="you@example.com"
+                            value={newComment.email}
+                            onChange={e => setNewComment(p => ({...p, email: e.target.value}))} />
                         </div>
                       </div>
                     )}
