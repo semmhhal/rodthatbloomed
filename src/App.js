@@ -1635,7 +1635,7 @@ export default function Blog() {
                         )}
                       </div>
                       <p className="comment-text">{c.message}</p>
-                      <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:"12px",marginTop:"10px"}}>
                         <button className="reply-btn" onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyName(""); setReplyText(""); }}>
                           Reply
                         </button>
