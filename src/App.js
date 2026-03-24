@@ -1241,21 +1241,23 @@ export default function Blog() {
 
   function shareVia(platform, post) {
     const url = getShareUrl(post);
+    const text = `${post.title}\n${url}`;
+    const encodedText = encodeURIComponent(text);
     const encodedUrl = encodeURIComponent(url);
     setShowShareMenu(false);
     switch (platform) {
       case "imessage":
-        window.open(`sms:&body=${encodedUrl}`); break;
+        window.open(`sms:&body=${encodedText}`); break;
       case "whatsapp":
-        window.open(`https://wa.me/?text=${encodedUrl}`); break;
+        window.open(`https://wa.me/?text=${encodedText}`); break;
       case "telegram":
-        window.open(`https://t.me/share/url?url=${encodedUrl}`); break;
+        window.open(`https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent(post.title)}`); break;
       case "gmail":
-        window.open(`https://mail.google.com/mail/?view=cm&su=${encodeURIComponent(post.title)}&body=${encodedUrl}`); break;
+        window.open(`https://mail.google.com/mail/?view=cm&su=${encodeURIComponent(post.title)}&body=${encodedText}`); break;
       case "twitter":
-        window.open(`https://twitter.com/intent/tweet?url=${encodedUrl}`); break;
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodedUrl}`); break;
       case "copy":
-        navigator.clipboard.writeText(url);
+        navigator.clipboard.writeText(text);
         setShareCopied(true);
         setTimeout(() => setShareCopied(false), 2000);
         break;
