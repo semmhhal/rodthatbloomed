@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/((?!static|favicon|rtb-logo|manifest|semhal|og-).*)", "destination": "/index.html" }
+  ]
+}

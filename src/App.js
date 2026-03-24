@@ -1213,16 +1213,18 @@ export default function Blog() {
     setView("post");
     setSubmitSuccess(false);
     fetchComments(post.id);
-    window.location.hash = slugify(post.title);
+    window.history.pushState(null, "", `/${slugify(post.title)}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // Open post from URL hash
+  // Open post from URL path or hash
   useEffect(() => {
-    function handleHash() {
+    function handleRoute() {
       const hash = window.location.hash.replace(/^#/, "");
-      if (hash && posts.length > 0) {
-        const post = posts.find(p => slugify(p.title) === hash) || posts.find(p => String(p.id) === hash);
+      const path = window.location.pathname.replace(/^\//, "").replace(/\/$/, "");
+      const slug = hash || path;
+      if (slug && posts.length > 0) {
+        const post = posts.find(p => slugify(p.title) === slug) || posts.find(p => String(p.id) === slug);
         if (post) {
           setActivePost(post);
           setView("post");
@@ -1230,9 +1232,9 @@ export default function Blog() {
         }
       }
     }
-    handleHash();
-    window.addEventListener("hashchange", handleHash);
-    return () => window.removeEventListener("hashchange", handleHash);
+    handleRoute();
+    window.addEventListener("hashchange", handleRoute);
+    return () => window.removeEventListener("hashchange", handleRoute);
   }, [posts]);
 
   function getShareUrl(post) {
@@ -1573,7 +1575,7 @@ export default function Blog() {
             {view === "post" && activePost && (
               <article className="post-full">
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <button className="back-btn" onClick={() => { setView("home"); window.location.hash = ""; }}>← Back to entries</button>
+                  <button className="back-btn" onClick={() => { setView("home"); window.history.pushState(null, "", "/"); }}>← Back to entries</button>
                   <div style={{position:"relative",display:"flex",alignItems:"center",gap:"8px"}}>
                     {shareCopied && <span className="share-copied">Link copied!</span>}
                     <button className="share-icon-btn" onClick={() => setShowShareMenu(!showShareMenu)} title="Share this entry">
