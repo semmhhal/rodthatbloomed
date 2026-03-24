@@ -1222,19 +1222,26 @@ export default function Blog() {
     function handleRoute() {
       const hash = window.location.hash.replace(/^#/, "");
       const path = window.location.pathname.replace(/^\//, "").replace(/\/$/, "");
-      const slug = hash || path;
+      const slug = decodeURIComponent(hash || path).toLowerCase();
       if (slug && posts.length > 0) {
-        const post = posts.find(p => slugify(p.title) === slug) || posts.find(p => String(p.id) === slug);
+        const post = posts.find(p => slugify(p.title) === slug)
+          || posts.find(p => p.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") === slug)
+          || posts.find(p => String(p.id) === slug);
         if (post) {
           setActivePost(post);
           setView("post");
           fetchComments(post.id);
+          setTimeout(() => window.scrollTo({ top: 0 }), 100);
         }
       }
     }
     handleRoute();
     window.addEventListener("hashchange", handleRoute);
-    return () => window.removeEventListener("hashchange", handleRoute);
+    window.addEventListener("popstate", handleRoute);
+    return () => {
+      window.removeEventListener("hashchange", handleRoute);
+      window.removeEventListener("popstate", handleRoute);
+    };
   }, [posts]);
 
   function getShareUrl(post) {
